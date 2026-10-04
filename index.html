@@ -1,0 +1,824 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nemacad | Clinical Pharmacology</title>
+
+    <!-- PWA Primary Manifest & Theme Meta Tags -->
+    <link rel="manifest" href="./manifest.json">
+    <meta name="theme-color" content="#1e40af">
+
+    <!-- iOS / Apple Touch Meta Tags -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="Nemacad">
+    <link rel="apple-touch-icon" href="./icon-192.png">
+
+    <style>
+        :root {
+            --primary-color: #1e40af;
+            --secondary-color: #3b82f6;
+            --background: #f8fafc;
+            --surface: #ffffff;
+            --text-main: #0f172a;
+            --text-light: #64748b;
+            --success: #16a34a;
+            --danger: #dc2626;
+            --shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        body {
+            background-color: var(--background);
+            color: var(--text-main);
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        header {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 1.5rem 2rem;
+            text-align: center;
+            box-shadow: var(--shadow);
+        }
+
+        header h1 {
+            font-size: 1.8rem;
+            letter-spacing: 1px;
+        }
+
+        header p {
+            font-size: 0.9rem;
+            opacity: 0.9;
+            margin-top: 5px;
+        }
+
+        main {
+            flex: 1;
+            padding: 2rem;
+            max-width: 900px;
+            margin: 0 auto;
+            width: 100%;
+        }
+
+        .view-section {
+            display: none;
+            animation: fadeIn 0.3s ease-in-out;
+        }
+
+        .view-section.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .view-header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .view-header h2 {
+            font-size: 2rem;
+            color: var(--primary-color);
+            margin-bottom: 0.5rem;
+        }
+
+        .view-header p {
+            color: var(--text-light);
+        }
+
+        .button-container {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            align-items: center;
+        }
+
+        .grid-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            width: 100%;
+        }
+
+        .btn {
+            background-color: var(--surface);
+            color: var(--primary-color);
+            border: 2px solid var(--secondary-color);
+            padding: 0.9rem 1.4rem;
+            font-size: 1.05rem;
+            font-weight: 600;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: var(--shadow);
+            width: 100%;
+            max-width: 400px;
+            text-align: center;
+        }
+
+        .btn:hover {
+            background-color: var(--secondary-color);
+            color: white;
+            transform: translateY(-2px);
+        }
+        
+        .btn-grid {
+            max-width: 100%;
+        }
+
+        .btn-option {
+            max-width: 100%;
+            text-align: left;
+            font-size: 1rem;
+            font-weight: 500;
+            line-height: 1.4;
+        }
+
+        .nav-actions {
+            margin-top: 2rem;
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+        }
+
+        .btn-back {
+            background-color: transparent;
+            color: var(--text-light);
+            border: 1px solid var(--text-light);
+            padding: 0.5rem 1rem;
+            font-size: 0.9rem;
+            max-width: 160px;
+        }
+
+        .btn-back:hover {
+            background-color: var(--text-light);
+            color: white;
+        }
+
+        /* Quiz & Result Cards */
+        .quiz-card {
+            background: var(--surface);
+            padding: 2rem;
+            border-radius: 10px;
+            box-shadow: var(--shadow);
+            max-width: 720px;
+            margin: 0 auto;
+        }
+
+        .question-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.75rem;
+        }
+
+        .badge-difficulty {
+            padding: 0.25rem 0.6rem;
+            border-radius: 999px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+
+        .diff-easy { background: #dcfce7; color: #15803d; }
+        .diff-moderate { background: #fef9c3; color: #a16207; }
+        .diff-hard { background: #fee2e2; color: #b91c1c; }
+
+        .question-title {
+            font-size: 1.2rem;
+            margin-bottom: 1.5rem;
+            line-height: 1.5;
+            color: var(--text-main);
+        }
+
+        .options-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.8rem;
+        }
+
+        .explanation-panel {
+            display: none;
+            margin-top: 1.5rem;
+            padding: 1.1rem 1.3rem;
+            border-radius: 8px;
+            background: #f0fdf4;
+            color: #166534;
+            border-left: 4px solid var(--success);
+            font-size: 0.95rem;
+            line-height: 1.5;
+        }
+
+        /* Question Footer (Tags, ID & Reference Page) */
+        .question-footer {
+            margin-top: 1.5rem;
+            padding-top: 1rem;
+            border-top: 1px dashed #cbd5e1;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            align-items: center;
+        }
+
+        .hash-tag {
+            background-color: #f1f5f9;
+            color: #475569;
+            font-size: 0.8rem;
+            font-weight: 600;
+            padding: 0.2rem 0.5rem;
+            border-radius: 4px;
+        }
+
+        .hash-tag-id {
+            background-color: #e0e7ff;
+            color: #4338ca;
+        }
+
+        /* Specific style for Goodman & Gilman Reference Page */
+        .hash-tag-ref {
+            background-color: #fef3c7;
+            color: #b45309;
+            border: 1px solid #fde68a;
+        }
+
+        /* Selector Styling */
+        .select-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            width: 100%;
+            max-width: 400px;
+            margin: 0 auto 1.5rem auto;
+            text-align: left;
+        }
+
+        .select-input {
+            padding: 0.8rem 1rem;
+            font-size: 1rem;
+            border-radius: 8px;
+            border: 2px solid var(--secondary-color);
+            background: white;
+            outline: none;
+        }
+
+        /* Analyzer Dashboard */
+        .analytics-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1.5rem;
+        }
+
+        .analytics-table th, .analytics-table td {
+            padding: 0.75rem 1rem;
+            text-align: left;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .analytics-table th {
+            background: #f8fafc;
+            color: var(--text-light);
+            font-size: 0.85rem;
+            text-transform: uppercase;
+        }
+
+        .status-pill {
+            padding: 0.2rem 0.6rem;
+            border-radius: 999px;
+            font-size: 0.8rem;
+            font-weight: 700;
+        }
+
+        .pill-strong { background: #dcfce7; color: #15803d; }
+        .pill-moderate { background: #fef9c3; color: #a16207; }
+        .pill-weak { background: #fee2e2; color: #b91c1c; }
+
+        footer {
+            text-align: center;
+            padding: 1.5rem;
+            background-color: var(--surface);
+            color: var(--text-light);
+            font-size: 0.85rem;
+            border-top: 1px solid #e2e8f0;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>Nemacad</h1>
+        <p>www.nemacad.com</p>
+    </header>
+
+    <main>
+        <!-- PAGE 1: Home View -->
+        <section id="view-home" class="view-section active">
+            <div class="view-header">
+                <h2>Welcome to Nemacad</h2>
+                <p>Advanced Clinical Pharmacology Learning Platform</p>
+            </div>
+            <div class="button-container">
+                <button class="btn" onclick="navigateTo('view-clinical-pharm')">Clinical Pharmacology</button>
+            </div>
+        </section>
+
+        <!-- PAGE 2: Clinical Pharmacology View -->
+        <section id="view-clinical-pharm" class="view-section">
+            <div class="view-header">
+                <h2>Clinical Pharmacology</h2>
+                <p>Select a learning module to continue</p>
+            </div>
+            <div class="button-container">
+                <button class="btn" onclick="openTestConfig()">Mock Test</button>
+                <button class="btn" onclick="navigateTo('view-flash-cards')">Flash Cards</button>
+            </div>
+            <div class="nav-actions">
+                <button class="btn btn-back" onclick="navigateTo('view-home')">← Back to Home</button>
+            </div>
+        </section>
+
+        <!-- PAGE 2.5: Mock Test Setup / Selection -->
+        <section id="view-test-setup" class="view-section">
+            <div class="view-header">
+                <h2>Mock Test Configuration</h2>
+                <p>Customize your test session</p>
+            </div>
+            <div class="quiz-card" style="text-align: center;">
+                <div class="select-group">
+                    <label for="question-count-select"><strong>Number of Questions:</strong></label>
+                    <select id="question-count-select" class="select-input">
+                        <option value="10">10 Questions</option>
+                        <option value="20" selected>20 Questions</option>
+                        <option value="30">30 Questions</option>
+                        <option value="40">40 Questions</option>
+                        <option value="50">50 Questions</option>
+                        <option value="60">60 Questions</option>
+                        <option value="70">70 Questions</option>
+                        <option value="80">80 Questions</option>
+                        <option value="90">90 Questions</option>
+                        <option value="100">100 Questions</option>
+                    </select>
+                </div>
+
+                <div class="select-group">
+                    <label for="subject-filter"><strong>Subject:</strong></label>
+                    <select id="subject-filter" class="select-input" onchange="updatePoolStatus()">
+                        <option value="All">All Subjects</option>
+                        <option value="General Pharmacology">General Pharmacology</option>
+                        <option value="ANS">ANS</option>
+                        <option value="Antimicrobials 1">Antimicrobials 1</option>
+                        <option value="Antimicrobials 2">Antimicrobials 2</option>
+                        <option value="Antimicrobials 3">Antimicrobials 3</option>
+                        <option value="Antimicrobials 4">Antimicrobials 4</option>
+                        <option value="CNS 2">CNS 2</option>
+                        <option value="CNS 1">CNS 1</option>
+                        <option value="Blood">Blood</option>
+                        <option value="CVS">CVS</option>
+                        <option value="Endocrine">Endocrine</option>
+                        <option value="GIT">GIT</option>
+                        <option value="Anti cancer">Anti cancer</option>
+                        <option value="Miscellaneous">Miscellaneous</option>
+                        <option value="Integrated pharmacology">Integrated pharmacology</option>
+                    </select>
+                </div>
+
+                <div class="select-group">
+                    <label for="difficulty-filter"><strong>Difficulty Level:</strong></label>
+                    <select id="difficulty-filter" class="select-input" onchange="updatePoolStatus()">
+                        <option value="All">All Difficulty Levels</option>
+                        <option value="Easy">Easy</option>
+                        <option value="Moderate">Moderate</option>
+                        <option value="Hard">Hard</option>
+                    </select>
+                </div>
+
+                <p id="pool-info-text" style="font-size: 0.9rem; color: var(--text-light); margin-bottom: 1.5rem;"></p>
+
+                <div class="button-container">
+                    <button class="btn" onclick="startConfiguredTest()">Start Mock Test</button>
+                    <button class="btn btn-back" onclick="resetAttemptHistory()" style="max-width: 250px;">Reset Question History</button>
+                </div>
+            </div>
+            <div class="nav-actions">
+                <button class="btn btn-back" onclick="navigateTo('view-clinical-pharm')">← Back to Modules</button>
+            </div>
+        </section>
+
+        <!-- PAGE 3: Flash Cards View -->
+        <section id="view-flash-cards" class="view-section">
+            <div class="view-header">
+                <h2>Flash Cards</h2>
+                <p>Choose a category to review your flash cards</p>
+            </div>
+            <div class="grid-container">
+                <button class="btn btn-grid">General Pharmacology</button>
+                <button class="btn btn-grid">Biostatistics</button>
+                <button class="btn btn-grid">Bioethics</button>
+                <button class="btn btn-grid">ANS</button>
+                <button class="btn btn-grid">CVS</button>
+                <button class="btn btn-grid">CNS</button>
+                <button class="btn btn-grid">Endocrine</button>
+                <button class="btn btn-grid">Blood</button>
+                <button class="btn btn-grid">Renal</button>
+                <button class="btn btn-grid">Pulmonary</button>
+                <button class="btn btn-grid">Antimicrobial</button>
+                <button class="btn btn-grid">Anti cancer</button>
+                <button class="btn btn-grid">Miscellaneous</button>
+            </div>
+            <div class="nav-actions">
+                <button class="btn btn-back" onclick="navigateTo('view-clinical-pharm')">← Back to Modules</button>
+            </div>
+        </section>
+
+        <!-- PAGE 4: Live Mock Test Session -->
+        <section id="view-mock-test" class="view-section">
+            <div class="view-header">
+                <h2>Mock Examination</h2>
+                <p id="test-progress">Loading...</p>
+            </div>
+
+            <div class="quiz-card" id="quiz-box">
+                <div class="question-header">
+                    <span id="question-subject-badge" style="font-weight:700; font-size:0.85rem; color:var(--secondary-color); text-transform:uppercase;"></span>
+                    <span id="question-difficulty-badge" class="badge-difficulty"></span>
+                </div>
+
+                <h3 class="question-title" id="question-text"></h3>
+                <div class="options-group" id="options-container"></div>
+
+                <div class="explanation-panel" id="explanation-container">
+                    <strong>Explanation:</strong> <span id="explanation-content"></span>
+                </div>
+
+                <!-- Footer with ID, Sub-topics, and Reference Page Tag -->
+                <div class="question-footer" id="question-footer-tags"></div>
+
+                <div class="nav-actions" style="justify-content: space-between; margin-top: 2rem;">
+                    <button class="btn btn-back" onclick="confirmExitTest()" style="margin:0;">Exit Test</button>
+                    <button class="btn" id="next-btn" onclick="stepNextQuestion()" style="max-width: 140px; display: none;">Next →</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- PAGE 5: Results & Strong/Weak Analyzer Dashboard -->
+        <section id="view-test-results" class="view-section">
+            <div class="view-header">
+                <h2>Performance Summary</h2>
+                <p id="final-score-text"></p>
+            </div>
+
+            <div class="quiz-card">
+                <h3 style="color: var(--primary-color); margin-bottom: 0.5rem;">Subject Area Performance Analyzer</h3>
+                <p style="font-size: 0.9rem; color: var(--text-light); margin-bottom: 1rem;">
+                    Ranked from your strongest sub-topics to areas needing reinforcement:
+                </p>
+
+                <table class="analytics-table">
+                    <thead>
+                        <tr>
+                            <th>Sub-Topic</th>
+                            <th>Accuracy</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody id="analytics-table-body"></tbody>
+                </table>
+
+                <div class="button-container" style="margin-top: 2rem;">
+                    <button class="btn" onclick="openTestConfig()">Take Another Test</button>
+                    <button class="btn btn-back" onclick="navigateTo('view-clinical-pharm')">Return to Modules</button>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <p>&copy; 2026 Nemacad. All rights reserved.</p>
+    </footer>
+
+    <script>
+        // Global variables
+        let rawMasterBank = [];
+        let activeTestQuestions = [];
+        let activeQuestionIndex = 0;
+        let runningScore = 0;
+        let sessionTopicStats = {}; // Records performance per topic
+
+        // Fisher-Yates array shuffle helper
+        function shuffleArray(array) {
+            const arr = [...array];
+            for (let i = arr.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [arr[i], arr[j]] = [arr[j], arr[i]];
+            }
+            return arr;
+        }
+
+        function navigateTo(targetViewId) {
+            document.querySelectorAll('.view-section').forEach(view => view.classList.remove('active'));
+            const targetView = document.getElementById(targetViewId);
+            if (targetView) {
+                targetView.classList.add('active');
+                window.scrollTo(0, 0);
+            }
+        }
+
+        // Open Configuration & Check Bank
+        async function openTestConfig() {
+            navigateTo('view-test-setup');
+
+            // Start each new configuration with all subjects and all difficulty levels.
+            const subjectFilter = document.getElementById('subject-filter');
+            const difficultyFilter = document.getElementById('difficulty-filter');
+            if (subjectFilter) subjectFilter.value = 'All';
+            if (difficultyFilter) difficultyFilter.value = 'All';
+            
+            if (rawMasterBank.length === 0) {
+                try {
+                    const response = await fetch('./questions.json');
+                    if (!response.ok) throw new Error("Could not load questions.json");
+                    rawMasterBank = await response.json();
+                } catch (err) {
+                    console.error(err);
+                    alert("Could not load questions.json. Please ensure it is in the same directory and Live Server is running.");
+                    return;
+                }
+            }
+
+            updatePoolStatus();
+        }
+
+        function getAttemptedIds() {
+            return JSON.parse(localStorage.getItem('nemacad_attempted_ids') || '[]');
+        }
+
+        function saveAttemptedIds(idsArray) {
+            localStorage.setItem('nemacad_attempted_ids', JSON.stringify(idsArray));
+        }
+
+        function resetAttemptHistory() {
+            localStorage.removeItem('nemacad_attempted_ids');
+            alert("Question history has been reset! All questions are now available again.");
+            updatePoolStatus();
+        }
+
+        function getFilteredQuestionPool(includeAttempted = false) {
+            const selectedSubject = document.getElementById('subject-filter')?.value || 'All';
+            const selectedDifficulty = document.getElementById('difficulty-filter')?.value || 'All';
+            const attemptedIds = getAttemptedIds();
+
+            return rawMasterBank.filter(q => {
+                const subjectMatches =
+                    selectedSubject === 'All' ||
+                    String(q.subject || '').trim().toLowerCase() === selectedSubject.trim().toLowerCase();
+
+                const difficultyMatches =
+                    selectedDifficulty === 'All' ||
+                    String(q.difficulty || '').trim().toLowerCase() === selectedDifficulty.trim().toLowerCase();
+
+                const attemptMatches = includeAttempted || !attemptedIds.includes(q.id);
+
+                return subjectMatches && difficultyMatches && attemptMatches;
+            });
+        }
+
+        function updatePoolStatus() {
+            const filteredTotal = getFilteredQuestionPool(true).length;
+            const unattempted = getFilteredQuestionPool(false).length;
+            const infoText = document.getElementById('pool-info-text');
+
+            const selectedSubject = document.getElementById('subject-filter')?.value || 'All';
+            const selectedDifficulty = document.getElementById('difficulty-filter')?.value || 'All';
+
+            infoText.innerHTML =
+                `Matching questions: <strong>${filteredTotal}</strong> &nbsp;|&nbsp; ` +
+                `Unseen: <strong>${unattempted}</strong>` +
+                (selectedSubject !== 'All' || selectedDifficulty !== 'All'
+                    ? ` <br><span style="font-size:0.85rem;">Filters: ${selectedSubject === 'All' ? 'All Subjects' : selectedSubject} • ${selectedDifficulty === 'All' ? 'All Difficulty Levels' : selectedDifficulty}</span>`
+                    : '');
+        }
+
+        // Start Configured Test
+        function startConfiguredTest() {
+            const selectedCount = parseInt(document.getElementById('question-count-select').value, 10);
+
+            // Apply Subject + Difficulty filters, then remove attempted questions.
+            let availablePool = getFilteredQuestionPool(false);
+
+            // If all unseen questions for this filter combination are exhausted,
+            // recycle only the matching questions instead of resetting the whole bank.
+            if (availablePool.length === 0) {
+                const matchingPool = getFilteredQuestionPool(true);
+
+                if (matchingPool.length === 0) {
+                    alert("No questions match the selected Subject and Difficulty filters. Please choose different filters.");
+                    return;
+                }
+
+                alert("You have completed all unseen questions for the selected filters. Reusing those matching questions for a fresh round.");
+                availablePool = [...matchingPool];
+            }
+
+            // Shuffle pool to ensure random order.
+            const randomized = shuffleArray(availablePool);
+
+            // Select only the requested count.
+            activeTestQuestions = randomized.slice(0, Math.min(selectedCount, randomized.length));
+            activeQuestionIndex = 0;
+            runningScore = 0;
+            sessionTopicStats = {};
+
+            navigateTo('view-mock-test');
+            displayCurrentQuestion();
+        }
+
+        function displayCurrentQuestion() {
+            const q = activeTestQuestions[activeQuestionIndex];
+            document.getElementById('test-progress').innerText = `Question ${activeQuestionIndex + 1} of ${activeTestQuestions.length}`;
+            
+            // Sub-Topic badge
+            const mainTopic = (q.subTopics && q.subTopics.length > 0) ? q.subTopics[0] : (q.subject || "Clinical Pharmacology");
+            document.getElementById('question-subject-badge').innerText = mainTopic;
+
+            // Difficulty Badge
+            const diffBadge = document.getElementById('question-difficulty-badge');
+            const diff = (q.difficulty || "Moderate").toLowerCase();
+            diffBadge.innerText = diff;
+            diffBadge.className = `badge-difficulty diff-${diff}`;
+
+            // Question Text
+            document.getElementById('question-text').innerText = q.question;
+            document.getElementById('explanation-container').style.display = 'none';
+            document.getElementById('next-btn').style.display = 'none';
+
+            // Options
+            const container = document.getElementById('options-container');
+            container.innerHTML = '';
+
+            q.options.forEach((optionText, idx) => {
+                const optButton = document.createElement('button');
+                optButton.className = 'btn btn-option';
+                optButton.innerText = optionText;
+                optButton.onclick = () => handleAnswerSelect(idx, optButton);
+                container.appendChild(optButton);
+            });
+
+            // Question Footer with #ID, #Sub-Topics, and #Reference Page
+            const footer = document.getElementById('question-footer-tags');
+            footer.innerHTML = `<span class="hash-tag hash-tag-id">#ID: ${q.id || (activeQuestionIndex + 1)}</span>`;
+            
+            if (q.subTopics && Array.isArray(q.subTopics)) {
+                q.subTopics.forEach(tag => {
+                    const tagEl = document.createElement('span');
+                    tagEl.className = 'hash-tag';
+                    tagEl.innerText = `#${tag}`;
+                    footer.appendChild(tagEl);
+                });
+            } else if (q.subject) {
+                const tagEl = document.createElement('span');
+                tagEl.className = 'hash-tag';
+                tagEl.innerText = `#${q.subject}`;
+                footer.appendChild(tagEl);
+            }
+
+            // Reference Page tag: checks for page, pageNumber, refPage, or reference
+            const refVal = q.reference || q.page || q.pageNumber || q.refPage;
+            if (refVal) {
+                const refEl = document.createElement('span');
+                refEl.className = 'hash-tag hash-tag-ref';
+                if (String(refVal).toLowerCase().includes('14e-gg')) {
+                    refEl.innerText = `#${refVal}`;
+                } else {
+                    refEl.innerText = `#14e-GG-p.${refVal}`;
+                }
+                footer.appendChild(refEl);
+            }
+        }
+
+        function handleAnswerSelect(selectedIdx, selectedButton) {
+            const q = activeTestQuestions[activeQuestionIndex];
+            const buttons = document.querySelectorAll('#options-container .btn-option');
+
+            // Record into local attempted tracker
+            const attemptedIds = getAttemptedIds();
+            if (!attemptedIds.includes(q.id)) {
+                attemptedIds.push(q.id);
+                saveAttemptedIds(attemptedIds);
+            }
+
+            // Track stats for analyzer
+            const primaryTopic = (q.subTopics && q.subTopics.length > 0) ? q.subTopics[0] : (q.subject || "General");
+            if (!sessionTopicStats[primaryTopic]) {
+                sessionTopicStats[primaryTopic] = { correct: 0, total: 0 };
+            }
+            sessionTopicStats[primaryTopic].total++;
+
+            // Highlight Correct / Incorrect
+            buttons.forEach((btn, idx) => {
+                btn.disabled = true;
+                btn.style.cursor = 'default';
+                if (idx === q.correct) {
+                    btn.style.backgroundColor = 'var(--success)';
+                    btn.style.borderColor = 'var(--success)';
+                    btn.style.color = '#ffffff';
+                }
+            });
+
+            if (selectedIdx === q.correct) {
+                runningScore++;
+                sessionTopicStats[primaryTopic].correct++;
+            } else {
+                selectedButton.style.backgroundColor = 'var(--danger)';
+                selectedButton.style.borderColor = 'var(--danger)';
+                selectedButton.style.color = '#ffffff';
+            }
+
+            document.getElementById('explanation-content').innerText = q.explanation;
+            document.getElementById('explanation-container').style.display = 'block';
+            document.getElementById('next-btn').style.display = 'block';
+        }
+
+        function stepNextQuestion() {
+            activeQuestionIndex++;
+            if (activeQuestionIndex < activeTestQuestions.length) {
+                displayCurrentQuestion();
+            } else {
+                renderResultsView();
+            }
+        }
+
+        function confirmExitTest() {
+            if (confirm("Are you sure you want to exit the current test session?")) {
+                navigateTo('view-clinical-pharm');
+            }
+        }
+
+        // Render Analyser Dashboard (Strongest to Weakest)
+        function renderResultsView() {
+            navigateTo('view-test-results');
+            document.getElementById('final-score-text').innerText = 
+                `You scored ${runningScore} out of ${activeTestQuestions.length} (${Math.round((runningScore / activeTestQuestions.length) * 100)}%)`;
+
+            const tableBody = document.getElementById('analytics-table-body');
+            tableBody.innerHTML = '';
+
+            // Compute percentages & sort descending (strongest to weakest)
+            const topicRankings = Object.keys(sessionTopicStats).map(topic => {
+                const stat = sessionTopicStats[topic];
+                const percentage = Math.round((stat.correct / stat.total) * 100);
+                return { topic, correct: stat.correct, total: stat.total, percentage };
+            });
+
+            topicRankings.sort((a, b) => b.percentage - a.percentage);
+
+            topicRankings.forEach(item => {
+                const row = document.createElement('tr');
+                let pillClass = 'pill-strong';
+                let statusLabel = 'Strong';
+
+                if (item.percentage < 50) {
+                    pillClass = 'pill-weak';
+                    statusLabel = 'Weak - Focus Area';
+                } else if (item.percentage < 75) {
+                    pillClass = 'pill-moderate';
+                    statusLabel = 'Moderate';
+                }
+
+                row.innerHTML = `
+                    <td><strong>${item.topic}</strong></td>
+                    <td>${item.correct}/${item.total} (${item.percentage}%)</td>
+                    <td><span class="status-pill ${pillClass}">${statusLabel}</span></td>
+                `;
+                tableBody.appendChild(row);
+            });
+        }
+    </script>
+
+    <!-- PWA Service Worker Registration Script -->
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('./sw.js')
+                    .then(registration => {
+                        console.log('Nemacad Service Worker registered successfully with scope:', registration.scope);
+                    })
+                    .catch(error => {
+                        console.error('Service Worker registration failed:', error);
+                    });
+            });
+        }
+    </script>
+</body>
+</html>
