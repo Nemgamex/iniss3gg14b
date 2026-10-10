@@ -134,6 +134,17 @@
             color: white;
             transform: translateY(-2px);
         }
+
+        .btn-primary {
+            background-color: var(--primary-color);
+            color: #ffffff;
+            border-color: var(--primary-color);
+        }
+
+        .btn-primary:hover {
+            background-color: #1e3a8a;
+            border-color: #1e3a8a;
+        }
         
         .btn-grid {
             max-width: 100%;
@@ -160,7 +171,7 @@
             border: 1px solid var(--text-light);
             padding: 0.5rem 1rem;
             font-size: 0.9rem;
-            max-width: 160px;
+            max-width: 220px;
         }
 
         .btn-back:hover {
@@ -183,6 +194,8 @@
             justify-content: space-between;
             align-items: center;
             margin-bottom: 0.75rem;
+            flex-wrap: wrap;
+            gap: 0.5rem;
         }
 
         .badge-difficulty {
@@ -196,6 +209,51 @@
         .diff-easy { background: #dcfce7; color: #15803d; }
         .diff-moderate { background: #fef9c3; color: #a16207; }
         .diff-hard { background: #fee2e2; color: #b91c1c; }
+
+        /* Timers Styling */
+        .timer-panel {
+            display: contents;
+        }
+        .timer-card {
+            background: #eff6ff;
+            border: 1px solid #bfdbfe;
+            border-radius: 7px;
+            padding: 0.45rem 0.55rem;
+            text-align: center;
+            min-width: 100px;
+        }
+        .timer-label { display: block; color: #1e40af; font-size: 0.62rem; font-weight: 700; margin-bottom: 0.15rem; }
+        .timer-value { display: block; font-size: 1.05rem; font-weight: 800; font-variant-numeric: tabular-nums; }
+        .timer-value.timer-warning { color: var(--danger); }
+        .mock-heading-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 0.65rem;
+            width: 100%;
+        }
+        .mock-heading-title { flex: 1; min-width: 0; text-align: center; }
+        .mock-heading-title h2 { font-size: 1.55rem; margin-bottom: 0.25rem; }
+        .mock-heading-row .timer-card { flex: 0 1 145px; }
+
+        .review-nav { 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center;
+            gap: 0.75rem; 
+            margin-top: 1.5rem; 
+        }
+        .review-nav .btn { max-width: 150px; }
+
+        @media (max-width: 560px) {
+            main { padding: 1rem; }
+            .mock-heading-row { gap: 0.35rem; }
+            .mock-heading-row .timer-card { flex-basis: 95px; min-width: 0; padding: 0.35rem 0.25rem; }
+            .mock-heading-title h2 { font-size: 1.1rem; }
+            .mock-heading-row .timer-label { font-size: 0.52rem; }
+            .mock-heading-row .timer-value { font-size: 0.9rem; }
+            .review-nav .btn { padding: 0.65rem 0.5rem; font-size: 0.85rem; }
+        }
 
         .question-title {
             font-size: 1.2rem;
@@ -220,6 +278,13 @@
             border-left: 4px solid var(--success);
             font-size: 0.95rem;
             line-height: 1.5;
+        }
+
+        .explanation-panel.review-mode {
+            display: block;
+            background: #f8fafc;
+            color: #1e293b;
+            border-left: 4px solid var(--secondary-color);
         }
 
         /* Question Footer (Tags, ID & Reference Page) */
@@ -247,12 +312,25 @@
             color: #4338ca;
         }
 
-        /* Specific style for Goodman & Gilman Reference Page */
+        /* Style for Goodman & Gilman Reference Page */
         .hash-tag-ref {
             background-color: #fef3c7;
             color: #b45309;
             border: 1px solid #fde68a;
         }
+
+        /* Review Outcome Pill */
+        .outcome-badge {
+            font-size: 0.8rem;
+            padding: 0.25rem 0.65rem;
+            border-radius: 6px;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+        }
+        .outcome-correct { background: #dcfce7; color: #15803d; border: 1px solid #bbf7d0; }
+        .outcome-incorrect { background: #fee2e2; color: #b91c1c; border: 1px solid #fecaca; }
+        .outcome-skipped { background: #fef3c7; color: #b45309; border: 1px solid #fde68a; }
 
         /* Selector Styling */
         .select-group {
@@ -442,11 +520,27 @@
             </div>
         </section>
 
-        <!-- PAGE 4: Live Mock Test Session -->
+        <!-- PAGE 4: Live Mock Test Session with Integrated Timers -->
         <section id="view-mock-test" class="view-section">
             <div class="view-header">
-                <h2>Mock Examination</h2>
-                <p id="test-progress">Loading...</p>
+                <div class="mock-heading-row">
+                    <div class="timer-panel" aria-live="polite">
+                        <div class="timer-card">
+                            <span class="timer-label">TOTAL TIME LEFT</span>
+                            <span class="timer-value" id="total-time-remaining">--:--</span>
+                        </div>
+                    </div>
+                    <div class="mock-heading-title">
+                        <h2>Mock Examination</h2>
+                        <p id="test-progress">Loading...</p>
+                    </div>
+                    <div class="timer-panel" aria-live="polite">
+                        <div class="timer-card">
+                            <span class="timer-label">THIS QUESTION</span>
+                            <span class="timer-value" id="question-time-remaining">01:00</span>
+                        </div>
+                    </div>
+                </div>
             </div>
 
             <div class="quiz-card" id="quiz-box">
@@ -467,7 +561,7 @@
 
                 <div class="nav-actions" style="justify-content: space-between; margin-top: 2rem;">
                     <button class="btn btn-back" onclick="confirmExitTest()" style="margin:0;">Exit Test</button>
-                    <button class="btn" id="next-btn" onclick="stepNextQuestion()" style="max-width: 140px; display: none;">Next →</button>
+                    <button class="btn" id="next-btn" onclick="stepNextQuestion()" style="max-width: 160px;">Skip / Next →</button>
                 </div>
             </div>
         </section>
@@ -480,6 +574,17 @@
             </div>
 
             <div class="quiz-card">
+                <!-- Review The Test Call-to-Action Card -->
+                <div style="background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 8px; padding: 1.25rem; text-align: center; margin-bottom: 1.5rem;">
+                    <h3 style="color: var(--primary-color); font-size: 1.15rem; margin-bottom: 0.35rem;">Post-Module Review</h3>
+                    <p style="font-size: 0.9rem; color: var(--text-light); margin-bottom: 1rem;">
+                        Analyze question rationales, book page references, and correct answer explanations.
+                    </p>
+                    <button class="btn btn-primary" onclick="openReviewSession()" style="width: 100%; max-width: 380px; margin: 0 auto; display: block;">
+                        📖 Review the Test
+                    </button>
+                </div>
+
                 <h3 style="color: var(--primary-color); margin-bottom: 0.5rem;">Subject Area Performance Analyzer</h3>
                 <p style="font-size: 0.9rem; color: var(--text-light); margin-bottom: 1rem;">
                     Ranked from your strongest sub-topics to areas needing reinforcement:
@@ -502,6 +607,47 @@
                 </div>
             </div>
         </section>
+
+        <!-- PAGE 6: Review the Test (Explanations & Rationales) -->
+        <section id="view-review-session" class="view-section">
+            <div class="view-header">
+                <h2>Review the Test</h2>
+                <p id="review-progress">Question 1 of 1</p>
+            </div>
+            <div class="quiz-card">
+                <div class="question-header">
+                    <div>
+                        <span id="review-subject-badge" style="font-weight:700; font-size:0.85rem; color:var(--secondary-color); text-transform:uppercase; margin-right: 0.5rem;"></span>
+                        <span id="review-difficulty-badge" class="badge-difficulty"></span>
+                    </div>
+                    <span id="review-status-pill" class="outcome-badge"></span>
+                </div>
+
+                <div style="margin: 0.75rem 0 1rem 0; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.5rem;">
+                    <label for="review-jump-select" style="font-size: 0.85rem; font-weight: 600; color: var(--text-light);">Jump to Question:</label>
+                    <select id="review-jump-select" class="select-input" style="padding: 0.4rem 0.6rem; font-size: 0.85rem; width: auto; max-width: 180px; margin: 0;" onchange="jumpToReviewQuestion(this.value)"></select>
+                </div>
+
+                <h3 class="question-title" id="review-question-text"></h3>
+                <div class="options-group" id="review-options-container"></div>
+                
+                <div class="explanation-panel review-mode" id="review-explanation-container">
+                    <strong style="color: var(--primary-color); display: block; margin-bottom: 0.4rem;">💡 Explanation &amp; Rationale:</strong>
+                    <div id="review-explanation-content" style="white-space: pre-line;"></div>
+                </div>
+
+                <div class="question-footer" id="review-question-footer"></div>
+
+                <div class="review-nav">
+                    <button class="btn btn-back" id="review-prev-btn" onclick="stepReviewQuestion(-1)">← Previous</button>
+                    <button class="btn" id="review-next-btn" onclick="stepReviewQuestion(1)">Next →</button>
+                </div>
+
+                <div class="nav-actions">
+                    <button class="btn btn-back" onclick="navigateTo('view-test-results')">← Back to Performance Analysis</button>
+                </div>
+            </div>
+        </section>
     </main>
 
     <footer>
@@ -515,6 +661,14 @@
         let activeQuestionIndex = 0;
         let runningScore = 0;
         let sessionTopicStats = {}; // Records performance per topic
+        let totalTimerInterval = null;
+        let questionTimerInterval = null;
+        let totalDeadline = 0;
+        let questionDeadline = 0;
+        let testIsActive = false;
+        let questionWasAnswered = false;
+        let sessionResponses = [];
+        let reviewQuestionIndex = 0;
 
         // Fisher-Yates array shuffle helper
         function shuffleArray(array) {
@@ -539,7 +693,6 @@
         async function openTestConfig() {
             navigateTo('view-test-setup');
 
-            // Start each new configuration with all subjects and all difficulty levels.
             const subjectFilter = document.getElementById('subject-filter');
             const difficultyFilter = document.getElementById('difficulty-filter');
             if (subjectFilter) subjectFilter.value = 'All';
@@ -610,43 +763,99 @@
                     : '');
         }
 
+        // Timer helpers
+        function formatTimeLeft(milliseconds) {
+            const seconds = Math.max(0, Math.ceil(milliseconds / 1000));
+            const minutesPart = Math.floor(seconds / 60);
+            const secondsPart = seconds % 60;
+            return String(minutesPart).padStart(2, '0') + ':' + String(secondsPart).padStart(2, '0');
+        }
+
+        function stopTestTimers() {
+            if (totalTimerInterval !== null) clearInterval(totalTimerInterval);
+            if (questionTimerInterval !== null) clearInterval(questionTimerInterval);
+            totalTimerInterval = null;
+            questionTimerInterval = null;
+        }
+
+        function updateTimerDisplay(elementId, milliseconds) {
+            const element = document.getElementById(elementId);
+            if (!element) return;
+            element.textContent = formatTimeLeft(milliseconds);
+            element.classList.toggle('timer-warning', milliseconds <= 10000);
+        }
+
+        function startTotalTimer() {
+            totalDeadline = Date.now() + activeTestQuestions.length * 60 * 1000;
+            updateTotalTimer();
+            totalTimerInterval = setInterval(updateTotalTimer, 250);
+        }
+
+        function updateTotalTimer() {
+            if (!testIsActive) return;
+            const remaining = Math.max(0, totalDeadline - Date.now());
+            updateTimerDisplay('total-time-remaining', remaining);
+            if (remaining <= 0) finishTest('time');
+        }
+
+        function startQuestionTimer() {
+            if (questionTimerInterval !== null) clearInterval(questionTimerInterval);
+            questionDeadline = Date.now() + 60 * 1000;
+            updateQuestionTimer();
+            questionTimerInterval = setInterval(updateQuestionTimer, 250);
+        }
+
+        function updateQuestionTimer() {
+            if (!testIsActive) return;
+            const remaining = Math.max(0, questionDeadline - Date.now());
+            updateTimerDisplay('question-time-remaining', remaining);
+            if (remaining <= 0) {
+                stepNextQuestion();
+            }
+        }
+
+        function finishTest(reason) {
+            if (!testIsActive) return;
+            testIsActive = false;
+            stopTestTimers();
+            renderResultsView(reason);
+        }
+
         // Start Configured Test
         function startConfiguredTest() {
             const selectedCount = parseInt(document.getElementById('question-count-select').value, 10);
-
-            // Apply Subject + Difficulty filters, then remove attempted questions.
             let availablePool = getFilteredQuestionPool(false);
 
-            // If all unseen questions for this filter combination are exhausted,
-            // recycle only the matching questions instead of resetting the whole bank.
             if (availablePool.length === 0) {
                 const matchingPool = getFilteredQuestionPool(true);
-
                 if (matchingPool.length === 0) {
                     alert("No questions match the selected Subject and Difficulty filters. Please choose different filters.");
                     return;
                 }
-
                 alert("You have completed all unseen questions for the selected filters. Reusing those matching questions for a fresh round.");
                 availablePool = [...matchingPool];
             }
 
-            // Shuffle pool to ensure random order.
             const randomized = shuffleArray(availablePool);
-
-            // Select only the requested count.
             activeTestQuestions = randomized.slice(0, Math.min(selectedCount, randomized.length));
             activeQuestionIndex = 0;
             runningScore = 0;
             sessionTopicStats = {};
+            sessionResponses = activeTestQuestions.map(() => null);
+            reviewQuestionIndex = 0;
+            questionWasAnswered = false;
+            testIsActive = true;
 
             navigateTo('view-mock-test');
             displayCurrentQuestion();
+            startTotalTimer();
         }
 
         function displayCurrentQuestion() {
             const q = activeTestQuestions[activeQuestionIndex];
             document.getElementById('test-progress').innerText = `Question ${activeQuestionIndex + 1} of ${activeTestQuestions.length}`;
+            questionWasAnswered = false;
+            startQuestionTimer();
             
             // Sub-Topic badge
             const mainTopic = (q.subTopics && q.subTopics.length > 0) ? q.subTopics[0] : (q.subject || "Clinical Pharmacology");
@@ -661,7 +870,9 @@
             // Question Text
             document.getElementById('question-text').innerText = q.question;
             document.getElementById('explanation-container').style.display = 'none';
-            document.getElementById('next-btn').style.display = 'none';
+            document.getElementById('next-btn').style.display = 'block';
+            document.getElementById('next-btn').textContent =
+                activeQuestionIndex === activeTestQuestions.length - 1 ? 'Skip / Finish →' : 'Skip / Next →';
 
             // Options
             const container = document.getElementById('options-container');
@@ -689,11 +900,10 @@
             } else if (q.subject) {
                 const tagEl = document.createElement('span');
                 tagEl.className = 'hash-tag';
-                tagEl.innerText = `#${q.subject}`;
+                tagEl.innerText = `#${tagEl}`;
                 footer.appendChild(tagEl);
             }
 
-            // Reference Page tag: checks for page, pageNumber, refPage, or reference
             const refVal = q.reference || q.page || q.pageNumber || q.refPage;
             if (refVal) {
                 const refEl = document.createElement('span');
@@ -708,6 +918,9 @@
         }
 
         function handleAnswerSelect(selectedIdx, selectedButton) {
+            if (!testIsActive || questionWasAnswered) return;
+            questionWasAnswered = true;
+            sessionResponses[activeQuestionIndex] = selectedIdx;
             const q = activeTestQuestions[activeQuestionIndex];
             const buttons = document.querySelectorAll('#options-container .btn-option');
 
@@ -751,25 +964,183 @@
         }
 
         function stepNextQuestion() {
+            if (!testIsActive) return;
+            if (!questionWasAnswered) sessionResponses[activeQuestionIndex] = null;
+            if (questionTimerInterval !== null) {
+                clearInterval(questionTimerInterval);
+                questionTimerInterval = null;
+            }
             activeQuestionIndex++;
             if (activeQuestionIndex < activeTestQuestions.length) {
                 displayCurrentQuestion();
             } else {
-                renderResultsView();
+                finishTest('completed');
             }
         }
 
         function confirmExitTest() {
             if (confirm("Are you sure you want to exit the current test session?")) {
+                testIsActive = false;
+                stopTestTimers();
                 navigateTo('view-clinical-pharm');
             }
         }
 
+        // Post-Module "Review the Test" Feature
+        function populateReviewJumpDropdown() {
+            const jumpSelect = document.getElementById('review-jump-select');
+            jumpSelect.innerHTML = '';
+            activeTestQuestions.forEach((q, idx) => {
+                const opt = document.createElement('option');
+                opt.value = idx;
+                const chosen = sessionResponses[idx];
+                const marker = (chosen === null || chosen === undefined) ? '⚪' : (chosen === q.correct ? '✅' : '❌');
+                opt.textContent = `${marker} Q${idx + 1}`;
+                jumpSelect.appendChild(opt);
+            });
+        }
+
+        function jumpToReviewQuestion(index) {
+            reviewQuestionIndex = parseInt(index, 10);
+            renderReviewQuestion();
+        }
+
+        function openReviewSession() {
+            if (!activeTestQuestions || activeTestQuestions.length === 0) {
+                alert("No test questions available for review.");
+                return;
+            }
+            reviewQuestionIndex = 0;
+            populateReviewJumpDropdown();
+            renderReviewQuestion();
+            navigateTo('view-review-session');
+        }
+
+        function stepReviewQuestion(direction) {
+            const nextIndex = reviewQuestionIndex + direction;
+            if (nextIndex < 0 || nextIndex >= activeTestQuestions.length) return;
+            reviewQuestionIndex = nextIndex;
+            renderReviewQuestion();
+        }
+
+        function renderReviewQuestion() {
+            const q = activeTestQuestions[reviewQuestionIndex];
+            if (!q) return;
+            const selectedIdx = sessionResponses[reviewQuestionIndex];
+
+            // Progress text
+            document.getElementById('review-progress').textContent =
+                `Question ${reviewQuestionIndex + 1} of ${activeTestQuestions.length}`;
+
+            // Sync Dropdown
+            const jumpSelect = document.getElementById('review-jump-select');
+            if (jumpSelect) jumpSelect.value = reviewQuestionIndex;
+
+            // Badges
+            document.getElementById('review-subject-badge').textContent =
+                (q.subTopics && q.subTopics.length > 0) ? q.subTopics[0] : (q.subject || 'Clinical Pharmacology');
+            
+            const diffBadge = document.getElementById('review-difficulty-badge');
+            const diff = (q.difficulty || 'Moderate').toLowerCase();
+            diffBadge.textContent = diff;
+            diffBadge.className = `badge-difficulty diff-${diff}`;
+
+            // Outcome badge
+            const outcomeBadge = document.getElementById('review-status-pill');
+            if (selectedIdx === null || selectedIdx === undefined) {
+                outcomeBadge.textContent = "Skipped / Unanswered";
+                outcomeBadge.className = "outcome-badge outcome-skipped";
+            } else if (selectedIdx === q.correct) {
+                outcomeBadge.textContent = "Correct";
+                outcomeBadge.className = "outcome-badge outcome-correct";
+            } else {
+                outcomeBadge.textContent = "Incorrect";
+                outcomeBadge.className = "outcome-badge outcome-incorrect";
+            }
+
+            // Question Text & Explanation
+            document.getElementById('review-question-text').textContent = q.question;
+            document.getElementById('review-explanation-content').textContent =
+                q.explanation || 'No detailed explanation provided for this question.';
+
+            // Render options as pure text options with green/red background highlights
+            const options = document.getElementById('review-options-container');
+            options.innerHTML = '';
+            
+            q.options.forEach((optionText, idx) => {
+                const button = document.createElement('button');
+                button.className = 'btn btn-option';
+                button.disabled = true;
+                button.style.cursor = 'default';
+                button.textContent = optionText; // exact natural option text without added labels
+                
+                const isCorrect = (idx === q.correct);
+                const isUserChoice = (idx === selectedIdx);
+
+                if (isCorrect) {
+                    // Correct option is always highlighted green
+                    button.style.backgroundColor = 'var(--success)';
+                    button.style.borderColor = 'var(--success)';
+                    button.style.color = '#ffffff';
+                } else if (isUserChoice) {
+                    // Selected wrong option is highlighted red
+                    button.style.backgroundColor = 'var(--danger)';
+                    button.style.borderColor = 'var(--danger)';
+                    button.style.color = '#ffffff';
+                }
+
+                options.appendChild(button);
+            });
+
+            // Question Footer with Tags, ID & Reference Page
+            const footer = document.getElementById('review-question-footer');
+            footer.innerHTML = `<span class="hash-tag hash-tag-id">#ID: ${q.id || (reviewQuestionIndex + 1)}</span>`;
+            (Array.isArray(q.subTopics) ? q.subTopics : [q.subject].filter(Boolean)).forEach(tag => {
+                const tagEl = document.createElement('span');
+                tagEl.className = 'hash-tag';
+                tagEl.textContent = `#${tag}`;
+                footer.appendChild(tagEl);
+            });
+
+            const refVal = q.reference || q.page || q.pageNumber || q.refPage;
+            if (refVal) {
+                const refEl = document.createElement('span');
+                refEl.className = 'hash-tag hash-tag-ref';
+                if (String(refVal).toLowerCase().includes('14e-gg')) {
+                    refEl.innerText = `#${refVal}`;
+                } else {
+                    refEl.innerText = `#14e-GG-p.${refVal}`;
+                }
+                footer.appendChild(refEl);
+            }
+
+            // Nav buttons state
+            const prevBtn = document.getElementById('review-prev-btn');
+            prevBtn.disabled = reviewQuestionIndex === 0;
+            prevBtn.style.opacity = reviewQuestionIndex === 0 ? '0.45' : '1';
+
+            const nextBtn = document.getElementById('review-next-btn');
+            nextBtn.disabled = reviewQuestionIndex === activeTestQuestions.length - 1;
+            nextBtn.style.opacity = reviewQuestionIndex === activeTestQuestions.length - 1 ? '0.45' : '1';
+            nextBtn.textContent = reviewQuestionIndex === activeTestQuestions.length - 1 ? 'End of Review' : 'Next →';
+        }
+
         // Render Analyser Dashboard (Strongest to Weakest)
-        function renderResultsView() {
+        function renderResultsView(reason = 'completed') {
+            stopTestTimers();
             navigateTo('view-test-results');
+            const totalQuestions = activeTestQuestions.length;
+            const answeredTotal = Object.values(sessionTopicStats).reduce((sum, stat) => sum + stat.total, 0);
+            const unanswered = Math.max(0, totalQuestions - answeredTotal);
+            const scorePercent = totalQuestions ? Math.round((runningScore / totalQuestions) * 100) : 0;
+            const endingMessage = reason === 'time'
+                ? ' Total time expired; your test was submitted automatically.'
+                : reason === 'completed'
+                    ? ' Test completed.'
+                    : '';
+
             document.getElementById('final-score-text').innerText = 
-                `You scored ${runningScore} out of ${activeTestQuestions.length} (${Math.round((runningScore / activeTestQuestions.length) * 100)}%)`;
+                `You scored ${runningScore} out of ${totalQuestions} (${scorePercent}%). Skipped/Unanswered: ${unanswered}.${endingMessage}`;
 
             const tableBody = document.getElementById('analytics-table-body');
             tableBody.innerHTML = '';
