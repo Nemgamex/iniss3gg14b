@@ -391,6 +391,47 @@
             font-size: 0.85rem;
             border-top: 1px solid #e2e8f0;
         }
+
+        /* Compact, mobile-first test configuration tiles */
+        .choice-grid { display:grid; gap:0.45rem; width:100%; }
+        .count-grid { grid-template-columns:repeat(5,minmax(0,1fr)); }
+        .difficulty-grid { grid-template-columns:repeat(4,minmax(0,1fr)); }
+        .choice-tile {
+            min-width:0; padding:0.7rem 0.15rem; background:#fff;
+            border:2px solid #cbd5e1; border-radius:8px; color:#334155;
+            font-size:0.9rem; font-weight:700; cursor:pointer;
+            touch-action:manipulation;
+        }
+        .choice-tile.selected { background:var(--primary-color); color:white; border-color:var(--primary-color); }
+        .choice-tile:focus-visible, .question-number-nav button:focus-visible { outline:3px solid #f59e0b; outline-offset:2px; }
+
+        /* Seven fixed positions: <, Q-2, Q-1, Q, Q+1, Q+2, > */
+        .question-number-nav {
+            display:grid; grid-template-columns:repeat(7,minmax(0,1fr));
+            gap:0.32rem; max-width:720px; margin:0 auto 0.8rem;
+        }
+        .question-number-nav button, .question-number-nav .empty-slot {
+            min-width:0; height:2.65rem; border-radius:7px;
+            display:flex; align-items:center; justify-content:center;
+            font-size:0.92rem; font-weight:750;
+        }
+        .question-number-nav button { background:#fff; color:var(--primary-color); border:1px solid #bfdbfe; cursor:pointer; }
+        .question-number-nav button.current {
+            background:#dbeafe; color:#0f172a; border:1px solid #93c5fd;
+            border-bottom:4px solid #0f172a; padding-top:3px;
+        }
+        .question-number-nav button:disabled { opacity:0.32; cursor:default; }
+        .question-number-nav .empty-slot { background:transparent; }
+        .swipe-card { touch-action:pan-y; }
+        @media (max-width:560px) {
+            .select-group { max-width:100%; }
+            .quiz-card { padding:1rem; }
+            .choice-tile { font-size:0.76rem; padding:0.65rem 0.05rem; }
+            .question-number-nav { gap:0.2rem; }
+            .question-number-nav button, .question-number-nav .empty-slot { height:2.3rem; font-size:0.85rem; }
+        }
+        @media (prefers-reduced-motion:reduce) { .view-section { animation:none; } }
+
     </style>
 </head>
 <body>
@@ -436,18 +477,19 @@
             <div class="quiz-card" style="text-align: center;">
                 <div class="select-group">
                     <label for="question-count-select"><strong>Number of Questions:</strong></label>
-                    <select id="question-count-select" class="select-input">
-                        <option value="10">10 Questions</option>
-                        <option value="20" selected>20 Questions</option>
-                        <option value="30">30 Questions</option>
-                        <option value="40">40 Questions</option>
-                        <option value="50">50 Questions</option>
-                        <option value="60">60 Questions</option>
-                        <option value="70">70 Questions</option>
-                        <option value="80">80 Questions</option>
-                        <option value="90">90 Questions</option>
-                        <option value="100">100 Questions</option>
-                    </select>
+                    <input type="hidden" id="question-count-select" value="20">
+                    <div class="choice-grid count-grid" id="count-choice-grid" role="group" aria-label="Number of questions">
+                        <button type="button" class="choice-tile" data-count="10" onclick="chooseQuestionCount(10)">10</button>
+                        <button type="button" class="choice-tile selected" data-count="20" onclick="chooseQuestionCount(20)" aria-pressed="true">20</button>
+                        <button type="button" class="choice-tile" data-count="30" onclick="chooseQuestionCount(30)">30</button>
+                        <button type="button" class="choice-tile" data-count="40" onclick="chooseQuestionCount(40)">40</button>
+                        <button type="button" class="choice-tile" data-count="50" onclick="chooseQuestionCount(50)">50</button>
+                        <button type="button" class="choice-tile" data-count="60" onclick="chooseQuestionCount(60)">60</button>
+                        <button type="button" class="choice-tile" data-count="70" onclick="chooseQuestionCount(70)">70</button>
+                        <button type="button" class="choice-tile" data-count="80" onclick="chooseQuestionCount(80)">80</button>
+                        <button type="button" class="choice-tile" data-count="90" onclick="chooseQuestionCount(90)">90</button>
+                        <button type="button" class="choice-tile" data-count="100" onclick="chooseQuestionCount(100)">100</button>
+                    </div>
                 </div>
 
                 <div class="select-group">
@@ -473,13 +515,14 @@
                 </div>
 
                 <div class="select-group">
-                    <label for="difficulty-filter"><strong>Difficulty Level:</strong></label>
-                    <select id="difficulty-filter" class="select-input" onchange="updatePoolStatus()">
-                        <option value="All">All Difficulty Levels</option>
-                        <option value="Easy">Easy</option>
-                        <option value="Moderate">Moderate</option>
-                        <option value="Hard">Hard</option>
-                    </select>
+                    <label id="difficulty-label"><strong>Difficulty Level:</strong></label>
+                    <input type="hidden" id="difficulty-filter" value="All">
+                    <div class="choice-grid difficulty-grid" role="group" aria-labelledby="difficulty-label">
+                        <button type="button" class="choice-tile selected" data-difficulty="All" onclick="chooseDifficulty('All')" aria-pressed="true">All</button>
+                        <button type="button" class="choice-tile" data-difficulty="Easy" onclick="chooseDifficulty('Easy')">Easy</button>
+                        <button type="button" class="choice-tile" data-difficulty="Moderate" onclick="chooseDifficulty('Moderate')">Moderate</button>
+                        <button type="button" class="choice-tile" data-difficulty="Hard" onclick="chooseDifficulty('Hard')">Hard</button>
+                    </div>
                 </div>
 
                 <p id="pool-info-text" style="font-size: 0.9rem; color: var(--text-light); margin-bottom: 1.5rem;"></p>
@@ -543,7 +586,8 @@
                 </div>
             </div>
 
-            <div class="quiz-card" id="quiz-box">
+            <div id="exam-question-nav" class="question-number-nav" role="group" aria-label="Exam question navigation"></div>
+            <div class="quiz-card swipe-card" id="quiz-box">
                 <div class="question-header">
                     <span id="question-subject-badge" style="font-weight:700; font-size:0.85rem; color:var(--secondary-color); text-transform:uppercase;"></span>
                     <span id="question-difficulty-badge" class="badge-difficulty"></span>
@@ -553,7 +597,7 @@
                 <div class="options-group" id="options-container"></div>
 
                 <div class="explanation-panel" id="explanation-container">
-                    <strong>Explanation:</strong> <span id="explanation-content"></span>
+                    <strong>Explanation</strong><div id="explanation-content" style="margin-top:0.4rem; white-space:pre-line;"></div>
                 </div>
 
                 <!-- Footer with ID, Sub-topics, and Reference Page Tag -->
@@ -614,7 +658,8 @@
                 <h2>Review the Test</h2>
                 <p id="review-progress">Question 1 of 1</p>
             </div>
-            <div class="quiz-card">
+            <div id="review-question-nav" class="question-number-nav" role="group" aria-label="Review question navigation"></div>
+            <div class="quiz-card swipe-card" id="review-quiz-box">
                 <div class="question-header">
                     <div>
                         <span id="review-subject-badge" style="font-weight:700; font-size:0.85rem; color:var(--secondary-color); text-transform:uppercase; margin-right: 0.5rem;"></span>
@@ -623,16 +668,12 @@
                     <span id="review-status-pill" class="outcome-badge"></span>
                 </div>
 
-                <div style="margin: 0.75rem 0 1rem 0; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.5rem;">
-                    <label for="review-jump-select" style="font-size: 0.85rem; font-weight: 600; color: var(--text-light);">Jump to Question:</label>
-                    <select id="review-jump-select" class="select-input" style="padding: 0.4rem 0.6rem; font-size: 0.85rem; width: auto; max-width: 180px; margin: 0;" onchange="jumpToReviewQuestion(this.value)"></select>
-                </div>
 
                 <h3 class="question-title" id="review-question-text"></h3>
                 <div class="options-group" id="review-options-container"></div>
                 
                 <div class="explanation-panel review-mode" id="review-explanation-container">
-                    <strong style="color: var(--primary-color); display: block; margin-bottom: 0.4rem;">💡 Explanation &amp; Rationale:</strong>
+                     <strong style="color: var(--primary-color); display: block; margin-bottom: 0.4rem;">Explanation</strong>
                     <div id="review-explanation-content" style="white-space: pre-line;"></div>
                 </div>
 
@@ -696,7 +737,7 @@
             const subjectFilter = document.getElementById('subject-filter');
             const difficultyFilter = document.getElementById('difficulty-filter');
             if (subjectFilter) subjectFilter.value = 'All';
-            if (difficultyFilter) difficultyFilter.value = 'All';
+            if (difficultyFilter) chooseDifficulty('All');
             
             if (rawMasterBank.length === 0) {
                 try {
@@ -762,6 +803,128 @@
                     ? ` <br><span style="font-size:0.85rem;">Filters: ${selectedSubject === 'All' ? 'All Subjects' : selectedSubject} • ${selectedDifficulty === 'All' ? 'All Difficulty Levels' : selectedDifficulty}</span>`
                     : '');
         }
+
+        // Tile selectors preserve the existing filter IDs / test configuration logic.
+        function chooseQuestionCount(count) {
+            document.getElementById('question-count-select').value = String(count);
+            document.querySelectorAll('[data-count]').forEach(button => {
+                const selected = Number(button.dataset.count) === count;
+                button.classList.toggle('selected', selected);
+                button.setAttribute('aria-pressed', String(selected));
+            });
+        }
+
+        function chooseDifficulty(value) {
+            document.getElementById('difficulty-filter').value = value;
+            document.querySelectorAll('[data-difficulty]').forEach(button => {
+                const selected = button.dataset.difficulty === value;
+                button.classList.toggle('selected', selected);
+                button.setAttribute('aria-pressed', String(selected));
+            });
+            updatePoolStatus();
+        }
+
+        // A centered seven-slot question strip: arrows move five questions.
+        function renderQuestionNumberNav(mode) {
+            const exam = mode === 'exam';
+            const current = exam ? activeQuestionIndex : reviewQuestionIndex;
+            const total = activeTestQuestions.length;
+            const container = document.getElementById(exam ? 'exam-question-nav' : 'review-question-nav');
+            if (!container) return;
+            container.replaceChildren();
+
+            const addButton = (label, index, active = false, disabled = false) => {
+                const button = document.createElement('button');
+                button.type = 'button';
+                button.textContent = label;
+                button.disabled = disabled;
+                if (active) {
+                    button.classList.add('current');
+                    button.setAttribute('aria-current', 'step');
+                }
+                button.setAttribute('aria-label', label === '<' ? 'Back five questions' :
+                    label === '>' ? 'Forward five questions' : `Question ${index + 1}`);
+                button.addEventListener('click', () => changeQuestion(mode, index));
+                container.appendChild(button);
+            };
+            addButton('<', Math.max(0, current - 5), false, current === 0);
+            for (let offset = -2; offset <= 2; offset++) {
+                const index = current + offset;
+                if (index < 0 || index >= total) {
+                    const empty = document.createElement('span');
+                    empty.className = 'empty-slot';
+                    empty.setAttribute('aria-hidden', 'true');
+                    container.appendChild(empty);
+                } else {
+                    addButton(String(index + 1), index, offset === 0);
+                }
+            }
+            addButton('>', Math.min(total - 1, current + 5), false, current === total - 1);
+        }
+
+        let questionTransitioning = false;
+        async function changeQuestion(mode, index) {
+            const exam = mode === 'exam';
+            if (exam && !testIsActive) return;
+            if (questionTransitioning || index < 0 || index >= activeTestQuestions.length) return;
+            const previous = exam ? activeQuestionIndex : reviewQuestionIndex;
+            if (index === previous) return;
+            questionTransitioning = true;
+            // Stop a timed-out question from issuing another navigation during animation.
+            if (exam && questionTimerInterval !== null) {
+                clearInterval(questionTimerInterval);
+                questionTimerInterval = null;
+            }
+            const card = document.getElementById(exam ? 'quiz-box' : 'review-quiz-box');
+            const direction = index > previous ? -1 : 1;
+            const animate = card && typeof card.animate === 'function' &&
+                !window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+            try {
+                if (animate) {
+                    await card.animate([
+                        { transform:'translateX(0)', opacity:1 },
+                        { transform:`translateX(${direction * 25}px)`, opacity:0.2 }
+                    ], { duration:115, easing:'ease-in' }).finished;
+                }
+                if (exam) {
+                    if (!testIsActive) return;
+                    activeQuestionIndex = index;
+                    displayCurrentQuestion();
+                } else {
+                    reviewQuestionIndex = index;
+                    renderReviewQuestion();
+                }
+                if (animate) {
+                    await card.animate([
+                        { transform:`translateX(${-direction * 25}px)`, opacity:0.2 },
+                        { transform:'translateX(0)', opacity:1 }
+                    ], { duration:150, easing:'ease-out' }).finished;
+                }
+            } finally {
+                questionTransitioning = false;
+            }
+        }
+
+        // Horizontal finger swipes navigate; vertical page scrolling stays native.
+        function attachQuestionSwipe(cardId, mode) {
+            const card = document.getElementById(cardId);
+            let touchX = 0, touchY = 0;
+            card.addEventListener('touchstart', event => {
+                if (event.touches.length !== 1) return;
+                touchX = event.touches[0].clientX;
+                touchY = event.touches[0].clientY;
+            }, { passive:true });
+            card.addEventListener('touchend', event => {
+                if (event.changedTouches.length !== 1) return;
+                const dx = event.changedTouches[0].clientX - touchX;
+                const dy = event.changedTouches[0].clientY - touchY;
+                if (Math.abs(dx) < 55 || Math.abs(dx) < Math.abs(dy) * 1.3) return;
+                const current = mode === 'exam' ? activeQuestionIndex : reviewQuestionIndex;
+                changeQuestion(mode, current + (dx < 0 ? 1 : -1));
+            }, { passive:true });
+        }
+        attachQuestionSwipe('quiz-box', 'exam');
+        attachQuestionSwipe('review-quiz-box', 'review');
 
         // Timer helpers
         function formatTimeLeft(milliseconds) {
@@ -854,8 +1017,10 @@
         function displayCurrentQuestion() {
             const q = activeTestQuestions[activeQuestionIndex];
             document.getElementById('test-progress').innerText = `Question ${activeQuestionIndex + 1} of ${activeTestQuestions.length}`;
-            questionWasAnswered = false;
+            const savedAnswer = sessionResponses[activeQuestionIndex];
+            questionWasAnswered = savedAnswer !== null && savedAnswer !== undefined;
             startQuestionTimer();
+            renderQuestionNumberNav('exam');
             
             // Sub-Topic badge
             const mainTopic = (q.subTopics && q.subTopics.length > 0) ? q.subTopics[0] : (q.subject || "Clinical Pharmacology");
@@ -883,8 +1048,26 @@
                 optButton.className = 'btn btn-option';
                 optButton.innerText = optionText;
                 optButton.onclick = () => handleAnswerSelect(idx, optButton);
+                if (questionWasAnswered) {
+                    optButton.disabled = true;
+                    optButton.style.cursor = 'default';
+                    if (idx === q.correct) {
+                        optButton.style.backgroundColor = 'var(--success)';
+                        optButton.style.borderColor = 'var(--success)';
+                        optButton.style.color = '#ffffff';
+                    } else if (idx === savedAnswer) {
+                        optButton.style.backgroundColor = 'var(--danger)';
+                        optButton.style.borderColor = 'var(--danger)';
+                        optButton.style.color = '#ffffff';
+                    }
+                }
                 container.appendChild(optButton);
             });
+
+            if (questionWasAnswered) {
+                document.getElementById('explanation-content').innerText = q.explanation || '';
+                document.getElementById('explanation-container').style.display = 'block';
+            }
 
             // Question Footer with #ID, #Sub-Topics, and #Reference Page
             const footer = document.getElementById('question-footer-tags');
@@ -900,7 +1083,7 @@
             } else if (q.subject) {
                 const tagEl = document.createElement('span');
                 tagEl.className = 'hash-tag';
-                tagEl.innerText = `#${tagEl}`;
+                tagEl.innerText = `#${q.subject}`;
                 footer.appendChild(tagEl);
             }
 
@@ -961,20 +1144,15 @@
             document.getElementById('explanation-content').innerText = q.explanation;
             document.getElementById('explanation-container').style.display = 'block';
             document.getElementById('next-btn').style.display = 'block';
+            renderQuestionNumberNav('exam');
         }
 
         function stepNextQuestion() {
             if (!testIsActive) return;
-            if (!questionWasAnswered) sessionResponses[activeQuestionIndex] = null;
-            if (questionTimerInterval !== null) {
-                clearInterval(questionTimerInterval);
-                questionTimerInterval = null;
-            }
-            activeQuestionIndex++;
-            if (activeQuestionIndex < activeTestQuestions.length) {
-                displayCurrentQuestion();
-            } else {
+            if (activeQuestionIndex === activeTestQuestions.length - 1) {
                 finishTest('completed');
+            } else {
+                changeQuestion('exam', activeQuestionIndex + 1);
             }
         }
 
@@ -987,22 +1165,8 @@
         }
 
         // Post-Module "Review the Test" Feature
-        function populateReviewJumpDropdown() {
-            const jumpSelect = document.getElementById('review-jump-select');
-            jumpSelect.innerHTML = '';
-            activeTestQuestions.forEach((q, idx) => {
-                const opt = document.createElement('option');
-                opt.value = idx;
-                const chosen = sessionResponses[idx];
-                const marker = (chosen === null || chosen === undefined) ? '⚪' : (chosen === q.correct ? '✅' : '❌');
-                opt.textContent = `${marker} Q${idx + 1}`;
-                jumpSelect.appendChild(opt);
-            });
-        }
-
         function jumpToReviewQuestion(index) {
-            reviewQuestionIndex = parseInt(index, 10);
-            renderReviewQuestion();
+            changeQuestion('review', Number(index));
         }
 
         function openReviewSession() {
@@ -1011,30 +1175,23 @@
                 return;
             }
             reviewQuestionIndex = 0;
-            populateReviewJumpDropdown();
             renderReviewQuestion();
             navigateTo('view-review-session');
         }
 
         function stepReviewQuestion(direction) {
-            const nextIndex = reviewQuestionIndex + direction;
-            if (nextIndex < 0 || nextIndex >= activeTestQuestions.length) return;
-            reviewQuestionIndex = nextIndex;
-            renderReviewQuestion();
+            changeQuestion('review', reviewQuestionIndex + direction);
         }
 
         function renderReviewQuestion() {
             const q = activeTestQuestions[reviewQuestionIndex];
             if (!q) return;
             const selectedIdx = sessionResponses[reviewQuestionIndex];
+            renderQuestionNumberNav('review');
 
             // Progress text
             document.getElementById('review-progress').textContent =
                 `Question ${reviewQuestionIndex + 1} of ${activeTestQuestions.length}`;
-
-            // Sync Dropdown
-            const jumpSelect = document.getElementById('review-jump-select');
-            if (jumpSelect) jumpSelect.value = reviewQuestionIndex;
 
             // Badges
             document.getElementById('review-subject-badge').textContent =
